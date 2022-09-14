@@ -1,0 +1,40 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+# This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-gradle
+
+name: Java CI with Gradle
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+permissions: write-all
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
+        with:
+          ref: ${{ github.head_ref }}
+      - name: Set up JDK 11
+        uses: actions/setup-java@d854b6da19cdadd9a010605529e522c2393ebd38
+        with:
+          java-version: '11'
+          distribution: 'corretto'
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
+      - name: Build project with scaffold clean arquitecture
+        run: gradle cleanArchitecture --name=${{ values.name }} --type=${{ values.projectType }} --package=${{ values.package }} --coverage=${{ values.coverage }} --lombok=${{ values.lombok }} --metrics=${{ values.metrics }} --language=${{ values.language }} --javaVersion=${{ values.javaVersion }}
+      - name: Delete GitHub action file
+        run: rm -rf .github/workflows/gradle.yml
+      - uses: stefanzweifel/git-auto-commit-action@49620cd3ed21ee620a48530e81dba0d139c9cb80
+        with:
+          commit_message: Building clean architecture project
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
