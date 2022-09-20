@@ -34,8 +34,30 @@ import { CatalogGraphPage } from '@backstage/plugin-catalog-graph';
 import { PermissionedRoute } from '@backstage/plugin-permission-react';
 import { catalogEntityCreatePermission } from '@backstage/plugin-catalog-common/alpha';
 
+import { microsoftAuthApiRef } from '@backstage/core-plugin-api';
+import { SignInPage } from '@backstage/core-components';
+
+import { TodoListPage } from '@internal/plugin-todo-list';
+
+const authProviders = [
+    {
+        id: 'microsoft-auth-provider',
+        title: 'Microsoft',
+        message: 'Sign in using Microsoft',
+        apiRef: microsoftAuthApiRef,
+    }
+]
+
 const app = createApp({
   apis,
+  components: {
+    SignInPage: props => (
+        <SignInPage
+            {...props}
+            providers={authProviders}
+            align="center" />
+    ),
+  },
   bindRoutes({ bind }) {
     bind(catalogPlugin.externalRoutes, {
       createComponent: scaffolderPlugin.routes.root,
@@ -90,6 +112,7 @@ const routes = (
       {searchPage}
     </Route>
     <Route path="/settings" element={<UserSettingsPage />} />
+    <Route path="/todo-list" element={<TodoListPage />} />
     <Route path="/catalog-graph" element={<CatalogGraphPage />} />
   </FlatRoutes>
 );

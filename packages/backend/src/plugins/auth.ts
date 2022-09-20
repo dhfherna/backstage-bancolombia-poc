@@ -6,9 +6,12 @@ import {
 import { Router } from 'express';
 import { PluginEnvironment } from '../types';
 
+import { DEFAULT_NAMESPACE, stringifyEntityRef, } from '@backstage/catalog-model';
+
 export default async function createPlugin(
   env: PluginEnvironment,
 ): Promise<Router> {
+  console.log("Microsoft Provider");
   return await createRouter({
     logger: env.logger,
     config: env.config,
@@ -47,6 +50,41 @@ export default async function createPlugin(
             });
           },
           // resolver: providers.github.resolvers.usernameMatchingUserEntityName(),
+        },
+      }),
+
+      // Microsoft Auth Provider
+      microsoft: providers.microsoft.create({
+        signIn: {
+          resolver: async ({ profile }, ctx) => {
+            console.log("Objecto profile: " + JSON.stringify(profile));
+            console.dir(profile);
+            console.dir(ctx);
+            if (!profile.email) {
+              throw new Error(
+                'Login failed, user profile does not contain an email',
+              );
+            }
+            // We again use the local part of the email as the user name.
+            const [localPart] = profile.email.split('@');
+
+            // By using `stringifyEntityRef` we ensure that the reference is formatted correctly
+            const userEntityRef = stringifyEntityRef({
+              kind: 'User',
+              name: localPart,
+              namespace: DEFAULT_NAMESPACE,
+            });
+
+            console.dir(userEntityRef);
+
+            return ctx.issueToken({
+              claims: {
+                sub: userEntityRef,
+                ent: [userEntityRef],
+              },
+            });
+          },
+          //resolver: providers.microsoft.resolvers.emailMatchingUserEntityAnnotation(),
         },
       }),
     },
